@@ -50,6 +50,10 @@ export function newGame() {
 }
 
 export function bateIsEaten() {
+  GameProps.bait = new TBait(spcvs);
+  GameProps.bait.update();
+
+  GameProps.snake.update();
 
   console.log("Bait eaten!");
   /* Logic to increase the snake size and score when bait is eaten */

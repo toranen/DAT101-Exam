@@ -94,7 +94,7 @@ class TSnakeHead extends TSnakePart {
   }
 }
 
-class TSnakeBody extends TSnakePart {
+export class TSnakeBody extends TSnakePart {
   constructor(aSpriteCanvas, aBoardCell ) {
     super(aSpriteCanvas, SheetData.Body, aBoardCell);
     this.index = ESpriteIndex.RL;    
@@ -221,6 +221,7 @@ export class TSnake {
   #head = null;
   #body = null;
   #tail = null;
+  
   constructor(aSpriteCanvas, aBoardCell) {
     this.#head = new TSnakeHead(aSpriteCanvas, aBoardCell);
     let col = aBoardCell.col - 1;
@@ -228,7 +229,6 @@ export class TSnake {
     col--;
     this.#tail = new TSnakeTail(aSpriteCanvas, new TBoardCell(col, aBoardCell.row));
   } // constructor
-
   draw() {
     this.#head.draw();
     for (let i = 0; i < this.#body.length; i++) {
@@ -239,14 +239,20 @@ export class TSnake {
 
   //Returns true if the snake is alive
   update(){
+    let baitEaten = false;
     if (this.#isDead) {
       return false; // Snake is dead, do not continue
     }
+
     if(this.#head.update()) {
       for (let i = 0; i < this.#body.length; i++) {
         this.#body[i].update();
       }
-      this.#tail.update();  
+      if (baitEaten){
+      baitEaten = false;
+    } else{
+      this.#tail.update();
+    }
     }else if(!this.#isDead){
       this.#isDead = true;
       return false; // Collision detected, do not continue
