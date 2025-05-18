@@ -40,6 +40,17 @@ class TSpriteCanvas {
     return this.#ctx;
   }
   
+  setAlpha(aAlpha) {
+    this.#ctx.globalAlpha = aAlpha;
+  }
+
+  resetAlpha() {
+    this.#ctx.globalAlpha = 1.0;
+  }
+  
+  getImage() {
+    return this.#img;
+  }
 
   #mouseMove = (aEvent) => {
     const pos = this.getMousePos(aEvent);
@@ -148,9 +159,9 @@ class TSpriteCanvas {
     const dy = shape.y;
     const dw = shape.width;
     const dh = shape.height;
-    if (aSprite.alpha) {
-      this.#ctx.globalAlpha = aSprite.alpha;
-    }
+
+    this.#ctx.globalAlpha = aSprite.alpha ?? 1.0;
+
     if (rot !== 0) {
       //Center of rotation, relative to canvas top left corner
       const px = aSprite.pivot ? aSprite.pivot.x : aSprite.center.x;
@@ -181,7 +192,6 @@ class TSpriteCanvas {
       }
       this.#ctx.strokeStyle = oldStrokeStyle;
     }
-    this.#ctx.globalAlpha = 1.0; //Reset alpha to 1.0
     if (aSprite.onCustomDraw) {
       aSprite.onCustomDraw(this.#ctx);
     }
@@ -612,9 +622,17 @@ class TSpriteNumber {
     });
   }
 
+  drawTransparent(alpha = 0.5) {
+    this.#spNumbers.forEach((aSprite) => {
+      aSprite.alpha = alpha;
+      aSprite.draw();
+    });
+  }
+
   draw() {
     //Draw each digit sprite
     this.#spNumbers.forEach((aSprite) => {
+      aSprite.alpha = this.#alpha;
       aSprite.draw();
     });
   }

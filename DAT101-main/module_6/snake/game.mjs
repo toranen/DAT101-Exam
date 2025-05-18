@@ -4,10 +4,12 @@
 //----------- Import modules, mjs files  ---------------------------------------------------
 //-----------------------------------------------------------------------------------------
 import libSprite from "../../common/libs/libSprite_v2.mjs";
+import lib2D from "../../common/libs/lib2d_v2.mjs";
 import { TGameBoard, GameBoardSize, TBoardCell } from "./gameBoard.mjs";
 import { TSnake, EDirection } from "./snake.mjs";
 import { TBait } from "./bait.mjs";
 import { TMenu } from "./menu.mjs";
+import { SheetData } from "./SheetData.mjs";
 
 //-----------------------------------------------------------------------------------------
 //----------- variables and object --------------------------------------------------------
@@ -19,32 +21,32 @@ let hndUpdateGame = null;
 export const EGameStatus = { Idle: 0, Playing: 1, Pause: 2, GameOver: 3 };
 
 // prettier-ignore
-export const SheetData = {
-  Head:     { x:   0, y:   0, width:  38, height:  38, count:  4 },
-  Body:     { x:   0, y:  38, width:  38, height:  38, count:  6 },
-  Tail:     { x:   0, y:  76, width:  38, height:  38, count:  4 },
-  Bait:     { x:   0, y: 114, width:  38, height:  38, count:  1 },
-  Play:     { x:   0, y: 155, width: 202, height: 202, count: 10 },
-  GameOver: { x:   0, y: 647, width: 856, height: 580, count:  1 },
-  Home:     { x:  65, y: 995, width: 169, height: 167, count:  1 },
-  Retry:    { x: 614, y: 995, width: 169, height: 167, count:  1 },
-  Resume:   { x:   0, y: 357, width: 202, height: 202, count: 10 },
-  Number:   { x:   0, y: 560, width:  81, height:  86, count: 10 },
-};
 
 export const GameProps = {
   gameBoard: null,
   gameStatus: EGameStatus.Idle,
   snake: null,
   bait: null,
-  pause: null
+  pause: null,
 };
 
+GameProps.spriteCanvas = spcvs;
 //------------------------------------------------------------------------------------------
 //----------- Exported functions -----------------------------------------------------------
 //------------------------------------------------------------------------------------------
 
 export function newGame() {
+  GameProps.timer = 10;
+
+  GameProps.timeLeft = new libSprite.TSpriteNumber(spcvs, SheetData.Number, new lib2D.TPoint(10, 10));
+  GameProps.timeLeft.justify = libSprite.ESpriteNumberJustifyType.Left;
+  GameProps.timeLeft.value = 10;
+  GameProps.score = 0;
+  GameProps.scoreDisplay = new libSprite.TSpriteNumber(spcvs, SheetData.Number, new lib2D.TPoint(10, 100));
+  GameProps.scoreDisplay.justify = libSprite.ESpriteNumberJustifyType.Left;
+  GameProps.scoreDisplay.value = 0;
+
+  GameProps.gameStatus = EGameStatus.Playing; // change game status to Playing so the game can start
   GameProps.gameBoard = new TGameBoard();
   GameProps.snake = new TSnake(spcvs, new TBoardCell(5, 5)); // Initialize snake with a starting position
   GameProps.bait = new TBait(spcvs); // Initialize bait with a starting position
@@ -58,6 +60,11 @@ export function bateIsEaten() {
   console.log("Bait eaten!");
 
   GameProps.snake.grow();
+  const bonus = GameProps.timer;
+  GameProps.score += bonus * 2;
+  GameProps.scoreDisplay.value = GameProps.score;
+  GameProps.timer = 10;
+  GameProps.timeLeft.value = 10;
   
   increaseGameSpeed(); // Increase game speed
 }
@@ -84,26 +91,45 @@ function loadGame() {
 }
 
 function drawGame() {
-  // Clear the canvas
   spcvs.clearCanvas();
 
   switch (GameProps.gameStatus) {
     case EGameStatus.Playing:
+    case EGameStatus.GameOver:
     case EGameStatus.Pause:
       GameProps.bait.draw();
       GameProps.snake.draw();
+      GameProps.timeLeft.drawTransparent(0.5);
+      GameProps.scoreDisplay.drawTransparent(0.5);
       break;
   }
-  // Request the next frame
+
+  GameProps.pause.draw(); // <- Always draw menu last so it appears on top
+
   requestAnimationFrame(drawGame);
 }
 
 function updateGame() {
   // Update game logic here
+  if (GameProps.gameStatus === EGameStatus.Playing) { // Update game logic only when the game is playing
+    const now = performance.now();
+    if (!GameProps.lastTick) GameProps.lastTick = now;
+    if (now - GameProps.lastTick >= 1000) {
+      GameProps.lastTick = now;
+      if (GameProps.timer > 0) {
+        GameProps.timer--;
+        GameProps.timeLeft.value = GameProps.timer;
+      } else{}
+    }
+  }
+
   switch (GameProps.gameStatus) {
     case EGameStatus.Playing:
       if (!GameProps.snake.update()) {
         GameProps.gameStatus = EGameStatus.GameOver;
+        GameProps.scoreDisplay.value = GameProps.score;
+        
+        GameProps.pause.gameOver();
         console.log("Game over!");
       }
       break;
@@ -114,7 +140,6 @@ function increaseGameSpeed() {
   gameSpeed += 0.02; // Increase game speed
   clearInterval(hndUpdateGame); // Clear the previous interval
   hndUpdateGame = setInterval(updateGame, 1000 / gameSpeed); // Set a new interval with the increased speed
-  console.log(`Game speed increased to: ${gameSpeed}`);
 }
 
 

@@ -1,72 +1,79 @@
 "use strict";
 
-import { SheetData, GameProps ,newGame, onKeyDown } from "./game.mjs";
-import libSprite from "../../common/libs/libSprite_v2.mjs";
 import lib2D from "../../common/libs/lib2d_v2.mjs";
-/* Use this file to create the menu for the snake game. */
-
-const cvs = document.getElementById("cvs");
+import { SheetData } from "./SheetData.mjs";
+import libSprite from "../../common/libs/libSprite_v2.mjs";
+import { newGame } from "./game.mjs";
 
 export class TMenu {
-    #overlay = false;
-    #home = false;
-    #retry = false;
-    #resume = false;
-    #score = false;
-    #gameOver = false;
-    #pause = false;
-    
-    static GameStatus = {
-        Idle: 0,
-        Playing: 1,
-        Pause: 2,
-        GameOver: 3
+  constructor(spriteCanvas) {
+    this.sp = spriteCanvas;
+    this.visible = false;
+    this.showPauseAnim = false;
+
+    this.gameOverBg = new libSprite.TSprite(this.sp, SheetData.GameOver, new lib2D.TPoint(0, 0));
+    const canvasWidth = this.sp.canvas.width;
+    const canvasHeight = this.sp.canvas.height;
+    const menuWidth = SheetData.GameOver.width;
+    const menuHeight = SheetData.GameOver.height;
+    this.gameOverBg.x = (canvasWidth - menuWidth) / 2;
+    this.gameOverBg.y = (canvasHeight - menuHeight) / 2;
+
+    this.gameOverScore = new libSprite.TSpriteNumber(
+        this.sp,
+        SheetData.Number,
+        new lib2D.TPoint(this.gameOverBg.x + 230, this.gameOverBg.y + 130));
+    this.gameOverScore.justify = libSprite.ESpriteNumberJustifyType.Left;
+    this.gameOverScore.visible = false
+
+    const menuCenterX = 856 / 2;
+    const menuBottomY = 400;
+    this.btnHome = new libSprite.TSpriteButton(this.sp, SheetData.Home, new lib2D.TPoint(menuCenterX - 335, menuBottomY));
+    this.btnRetry = new libSprite.TSpriteButton(this.sp, SheetData.Retry, new lib2D.TPoint(menuCenterX + 215, menuBottomY));
+    this.pauseAnim = new libSprite.TSprite(this.sp, SheetData.PauseAnim, new lib2D.TPoint(320, 150));
+    this.pauseAnim.animateSpeed = 10;
+
+    this.btnHome.onClick = () => location.reload();
+    this.btnRetry.onClick = () => {
+      this.visible = false;
+      newGame();
+    };
+    this.btnHome.visible = false;
+    this.btnRetry.visible = false;
+    this.pauseAnim.visible = false;
+  }
+
+  pause() {
+    this.visible = true;
+    this.showPauseAnim = true;
+    this.pauseAnim.visible = true;
+    this.btnHome.visible = false;
+    this.btnRetry.visible = false
+  }
+
+  resume() {
+    this.visible = false;
+    this.showPauseAnim = false;
+    this.pauseAnim.visible = false;
+  }
+
+  gameOver() {
+    this.visible = true;
+    this.showPauseAnim = false;
+    this.pauseAnim.visible = false;
+    this.btnHome.visible = true;
+    this.btnRetry.visible = true;
+  }
+
+  draw() {
+    if (this.showPauseAnim) {
+      this.pauseAnim.draw();
+    }   if (!this.visible) return;
+  
+    if (!this.showPauseAnim) {
+      this.gameOverBg.draw();
+      this.btnHome.draw();
+      this.btnRetry.draw();
     }
-
-    constructor(aSpriteCanvas) {
-        this.#home = new libSprite.TSprite(aSpriteCanvas, SheetData.Home, new lib2D.TPoint(0, 0));
-        this.#retry = new libSprite.TSprite(aSpriteCanvas, SheetData.Retry, new lib2D.TPoint(0, 0));
-        this.#resume = new libSprite.TSprite(aSpriteCanvas, SheetData.Resume, new lib2D.TPoint(0, 0));
-        this.#score = new libSprite.TSprite(aSpriteCanvas, SheetData.Number, new lib2D.TPoint(0, 0));
-        this.#gameOver = new libSprite.TSprite(aSpriteCanvas, SheetData.GameOver, new lib2D.TPoint(0, 0));
-        this.#overlay = new libSprite.TSprite(aSpriteCanvas, SheetData.Play, new lib2D.TPoint(0, 0));
-    }
-
-    pause() {
-        this.#pause = true;
-    }
-
-    resume(){
-        this.#pause = false;
-    }
-
-    overlayPaused() {
-        switch (this.#pause) {
-            case true:
-                this.GameStatus = GameStatus.Pause;
-                this.#overlay = true;
-                console.log("Overlay paused");
-                break;
-            case false:
-                this.GameStatus = GameStatus.Playing;
-                this.#overlay = false;
-                console.log("Overlay playing");
-                break;
-        }
-    }
-
-    home(){
-        this.GameStatus = TMenu.GameStatus.Idle;
-    }
-
-    retry(){
-        this.GameStatus = TMenu.GameStatus.Playing;
-    }
-
-    score(){
-
-    }
-
-
-
+  }
 }

@@ -4,7 +4,8 @@
 //-----------------------------------------------------------------------------------------
 import libSprite from "../../common/libs/libSprite_v2.mjs";
 import lib2D from "../../common/libs/lib2d_v2.mjs";
-import { GameProps, SheetData } from "./game.mjs";
+import { GameProps } from "./game.mjs";
+import { SheetData } from "./SheetData.mjs";
 import { TBoardCell, EBoardCellInfoType } from "./gameBoard.mjs";
 
 //------------------------------------------------------------------------------------------
