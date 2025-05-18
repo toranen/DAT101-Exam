@@ -108,8 +108,10 @@ function updateGame() {
 }
 
 function increaseGameSpeed() {
-  /* Increase game speed logic here */
-  console.log("Increase game speed!");
+  gameSpeed += 0.01; // Increase game speed
+  clearInterval(hndUpdateGame); // Clear the previous interval
+  hndUpdateGame = setInterval(updateGame, 1000 / gameSpeed); // Set a new interval with the increased speed
+  console.log(`Game speed increased to: ${gameSpeed}`);
 }
 
 
