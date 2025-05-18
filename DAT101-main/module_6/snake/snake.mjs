@@ -238,27 +238,33 @@ export class TSnake {
   } // draw
 
   //Returns true if the snake is alive
-  update(){
-    let baitEaten = false;
-    if (this.#isDead) {
-      return false; // Snake is dead, do not continue
+  update(baitIsEaten) {
+    let baitEaten = baitIsEaten || false; //true when the bait is eaten
+    console.log(baitEaten);
+    
+    let clonePart = this.#body[this.#body.length-1].clone(); // Clone the last body part
+
+      if (this.#isDead) {
+        return false; // Snake is dead, do not continue
+      }
+      if(this.#head.update()) {
+        for (let i = 0; i < this.#body.length; i++) {
+          this.#body[i].update();
+        } 
+      if (baitEaten){ //if true...
+        this.#body.push(clonePart); // Add the cloned part to the body
+        this.update(false); // Reset baitEaten to false
+      }else {
+        this.#tail.update();
+      }
+      }else if(!this.#isDead){
+        this.#isDead = true;
+        return false; // Collision detected, do not continue
+      } 
+
+      return true; // No collision, continue
     }
 
-    if(this.#head.update()) {
-      for (let i = 0; i < this.#body.length; i++) {
-        this.#body[i].update();
-      }
-      if (baitEaten){
-      baitEaten = false;
-    } else{
-      this.#tail.update();
-    }
-    }else if(!this.#isDead){
-      this.#isDead = true;
-      return false; // Collision detected, do not continue
-    }
-    return true; // No collision, continue
-  }
 
   setDirection(aDirection) {
     this.#head.setDirection(aDirection);
