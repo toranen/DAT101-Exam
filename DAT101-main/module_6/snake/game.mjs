@@ -7,6 +7,7 @@ import libSprite from "../../common/libs/libSprite_v2.mjs";
 import { TGameBoard, GameBoardSize, TBoardCell } from "./gameBoard.mjs";
 import { TSnake, EDirection } from "./snake.mjs";
 import { TBait } from "./bait.mjs";
+import { TMenu } from "./menu.mjs";
 
 //-----------------------------------------------------------------------------------------
 //----------- variables and object --------------------------------------------------------
@@ -35,7 +36,8 @@ export const GameProps = {
   gameBoard: null,
   gameStatus: EGameStatus.Idle,
   snake: null,
-  bait: null
+  bait: null,
+  pause: null
 };
 
 //------------------------------------------------------------------------------------------
@@ -46,6 +48,7 @@ export function newGame() {
   GameProps.gameBoard = new TGameBoard();
   GameProps.snake = new TSnake(spcvs, new TBoardCell(5, 5)); // Initialize snake with a starting position
   GameProps.bait = new TBait(spcvs); // Initialize bait with a starting position
+  GameProps.pause = new TMenu (spcvs); 
   gameSpeed = 4; // Reset game speed
 }
 
@@ -108,7 +111,7 @@ function updateGame() {
 }
 
 function increaseGameSpeed() {
-  gameSpeed += 0.01; // Increase game speed
+  gameSpeed += 0.02; // Increase game speed
   clearInterval(hndUpdateGame); // Clear the previous interval
   hndUpdateGame = setInterval(updateGame, 1000 / gameSpeed); // Set a new interval with the increased speed
   console.log(`Game speed increased to: ${gameSpeed}`);
@@ -119,7 +122,8 @@ function increaseGameSpeed() {
 //----------- Event handlers --------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 
-function onKeyDown(event) {
+export function onKeyDown(event) {
+  let togglePause = 0;
   switch (event.key) {
     case "ArrowUp":
       GameProps.snake.setDirection(EDirection.Up);
@@ -134,9 +138,18 @@ function onKeyDown(event) {
       GameProps.snake.setDirection(EDirection.Right);
       break;
     case " ":
-      console.log("Space key pressed!");
-      /* Pause the game logic here */
-      
+      console.log("togglePause");
+      togglePause++;
+      if (togglePause = 1 && GameProps.gameStatus == EGameStatus.Playing) {
+        GameProps.gameStatus = EGameStatus.Pause;
+        GameProps.pause.pause();
+      } else if (togglePause = 1 && GameProps.gameStatus == EGameStatus.Pause) {
+        GameProps.gameStatus = EGameStatus.Playing;
+        GameProps.pause.resume();
+      } else if (GameProps.gameStatus == EGameStatus.GameOver) {
+        GameProps.gameStatus = EGameStatus.Playing;
+        newGame();
+      }
       break;
     default:
       console.log(`Key pressed: "${event.key}"`);
