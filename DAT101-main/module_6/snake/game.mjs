@@ -54,8 +54,8 @@ export function bateIsEaten() {
 
   console.log("Bait eaten!");
 
-  GameProps.snake.update(true); //call the snake update function to grow the snake
-
+  GameProps.snake.grow();
+  
   increaseGameSpeed(); // Increase game speed
 }
 

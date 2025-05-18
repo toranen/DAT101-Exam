@@ -221,6 +221,7 @@ export class TSnake {
   #head = null;
   #body = null;
   #tail = null;
+  #growNextPart = false;
   
   constructor(aSpriteCanvas, aBoardCell) {
     this.#head = new TSnakeHead(aSpriteCanvas, aBoardCell);
@@ -251,9 +252,9 @@ export class TSnake {
         for (let i = 0; i < this.#body.length; i++) {
           this.#body[i].update();
         } 
-      if (baitEaten){ //if true...
+      if (this.#growNextPart){ //if true...
         this.#body.push(clonePart); // Add the cloned part to the body
-        this.update(false); // Reset baitEaten to false
+        this.#growNextPart = false;
       }else {
         this.#tail.update();
       }
@@ -265,6 +266,9 @@ export class TSnake {
       return true; // No collision, continue
     }
 
+    grow(){
+      this.#growNextPart = true;
+    }
 
   setDirection(aDirection) {
     this.#head.setDirection(aDirection);
