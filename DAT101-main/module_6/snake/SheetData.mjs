@@ -12,4 +12,5 @@ export const SheetData = {
     Resume:   { x:   0, y: 357, width: 202, height: 202, count: 10 },
     Number:   { x:   0, y: 560, width:  81, height:  86, count: 10 },
     PauseAnim: { x: 0, y: 357, width: 202, height: 202, count: 10 },
+    IntroAnim: { x: 0, y: 156, width: 202, height: 202, count: 10 },
   };

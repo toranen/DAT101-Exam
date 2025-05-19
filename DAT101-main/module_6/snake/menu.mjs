@@ -22,7 +22,7 @@ export class TMenu {
     this.gameOverScore = new libSprite.TSpriteNumber(
         this.sp,
         SheetData.Number,
-        new lib2D.TPoint(this.gameOverBg.x + 230, this.gameOverBg.y + 130));
+        new lib2D.TPoint(this.gameOverBg.x + 500, this.gameOverBg.y + 200));
     this.gameOverScore.justify = libSprite.ESpriteNumberJustifyType.Left;
     this.gameOverScore.visible = false
 
@@ -57,6 +57,11 @@ export class TMenu {
     this.pauseAnim.visible = false;
   }
 
+  showGameOverScore(score) {
+    this.gameOverScore.value = score;
+    this.gameOverScore.visible = true;
+  }
+
   gameOver() {
     this.visible = true;
     this.showPauseAnim = false;
@@ -74,6 +79,7 @@ export class TMenu {
       this.gameOverBg.draw();
       this.btnHome.draw();
       this.btnRetry.draw();
+      this.gameOverScore.draw();
     }
   }
 }

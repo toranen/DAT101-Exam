@@ -18,7 +18,7 @@ const cvs = document.getElementById("cvs");
 const spcvs = new libSprite.TSpriteCanvas(cvs);
 let gameSpeed = 4; // Game speed multiplier;
 let hndUpdateGame = null;
-export const EGameStatus = { Idle: 0, Playing: 1, Pause: 2, GameOver: 3 };
+export const EGameStatus = { Idle: 0, Intro: 1, Playing: 2, Pause: 3, GameOver: 4 };
 
 // prettier-ignore
 
@@ -31,13 +31,18 @@ export const GameProps = {
 };
 
 GameProps.spriteCanvas = spcvs;
+GameProps.hasStarted = false;
 //------------------------------------------------------------------------------------------
 //----------- Exported functions -----------------------------------------------------------
 //------------------------------------------------------------------------------------------
 
 export function newGame() {
-  GameProps.timer = 10;
+  GameProps.introAnim = new libSprite.TSprite(spcvs, SheetData.IntroAnim, new lib2D.TPoint(300, 150)); // Initialize intro animation
+  GameProps.introAnim.animateSpeed = 10;
+  GameProps.introAnim.visible = false;
+  if (GameProps.gameStatus === EGameStatus.Intro) return
 
+  GameProps.timer = 10;
   GameProps.timeLeft = new libSprite.TSpriteNumber(spcvs, SheetData.Number, new lib2D.TPoint(10, 10));
   GameProps.timeLeft.justify = libSprite.ESpriteNumberJustifyType.Left;
   GameProps.timeLeft.value = 10;
@@ -61,6 +66,7 @@ export function bateIsEaten() {
 
   GameProps.snake.grow();
   const bonus = GameProps.timer;
+
   GameProps.score += bonus * 2;
   GameProps.scoreDisplay.value = GameProps.score;
   GameProps.timer = 10;
@@ -77,13 +83,16 @@ export function bateIsEaten() {
 function loadGame() {
   cvs.width = GameBoardSize.Cols * SheetData.Head.width;
   cvs.height = GameBoardSize.Rows * SheetData.Head.height;
+  
+
 
   GameProps.gameStatus = EGameStatus.Playing; // change game status to Idle
 
   /* Create the game menu here */ 
 
   newGame(); // Call this function from the menu to start a new game, remove this line when the menu is ready
-
+  GameProps.gameStatus = EGameStatus.Intro;
+  GameProps.introAnim.visible = true;
   requestAnimationFrame(drawGame);
   console.log("Game canvas is rendering!");
   hndUpdateGame = setInterval(updateGame, 1000 / gameSpeed); // Update game every 1000ms / gameSpeed
@@ -94,6 +103,11 @@ function drawGame() {
   spcvs.clearCanvas();
 
   switch (GameProps.gameStatus) {
+    case EGameStatus.Intro:
+      GameProps.introAnim.draw();
+      GameProps.timeLeft.drawTransparent(0.5);
+      GameProps.scoreDisplay.drawTransparent(0.5);
+      break;
     case EGameStatus.Playing:
     case EGameStatus.GameOver:
     case EGameStatus.Pause:
@@ -111,7 +125,7 @@ function drawGame() {
 
 function updateGame() {
   // Update game logic here
-  if (GameProps.gameStatus === EGameStatus.Playing) { // Update game logic only when the game is playing
+  if (GameProps.gameStatus === EGameStatus.Playing && GameProps.hasStarted) { // Update game logic only when the game is playing or snake is moving
     const now = performance.now();
     if (!GameProps.lastTick) GameProps.lastTick = now;
     if (now - GameProps.lastTick >= 1000) {
@@ -127,9 +141,8 @@ function updateGame() {
     case EGameStatus.Playing:
       if (!GameProps.snake.update()) {
         GameProps.gameStatus = EGameStatus.GameOver;
-        GameProps.scoreDisplay.value = GameProps.score;
-        
         GameProps.pause.gameOver();
+        GameProps.pause.showGameOverScore(GameProps.score);
         console.log("Game over!");
       }
       break;
@@ -152,20 +165,35 @@ export function onKeyDown(event) {
   switch (event.key) {
     case "ArrowUp":
       GameProps.snake.setDirection(EDirection.Up);
+      if (GameProps.gameStatus === EGameStatus.Intro) GameProps.gameStatus = EGameStatus.Playing;
+      GameProps.hasStarted = true;
       break;
     case "ArrowDown":
       GameProps.snake.setDirection(EDirection.Down);
+      if (GameProps.gameStatus === EGameStatus.Intro) GameProps.gameStatus = EGameStatus.Playing;
+      GameProps.hasStarted = true;
       break;
     case "ArrowLeft":
       GameProps.snake.setDirection(EDirection.Left);
+      if (GameProps.gameStatus === EGameStatus.Intro) GameProps.gameStatus = EGameStatus.Playing;
+      GameProps.hasStarted = true;
       break;
     case "ArrowRight":
       GameProps.snake.setDirection(EDirection.Right);
+      if (GameProps.gameStatus === EGameStatus.Intro) GameProps.gameStatus = EGameStatus.Playing;
+      GameProps.hasStarted = true;
       break;
     case " ":
       console.log("togglePause");
       togglePause++;
-      if (togglePause = 1 && GameProps.gameStatus == EGameStatus.Playing) {
+      if (GameProps.gameStatus === EGameStatus.Intro) {
+        if (togglePause = 1) {
+          GameProps.gameStatus = EGameStatus.Playing;
+          GameProps.introAnim.visible = false;
+          GameProps.hasStarted = true;
+        }
+        newGame();
+      } else if (togglePause = 1 && GameProps.gameStatus == EGameStatus.Playing) {
         GameProps.gameStatus = EGameStatus.Pause;
         GameProps.pause.pause();
       } else if (togglePause = 1 && GameProps.gameStatus == EGameStatus.Pause) {
